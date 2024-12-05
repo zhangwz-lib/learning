@@ -1,0 +1,64 @@
+@startuml
+
+gdiosUi ->gbaseServer: 个人信息/系统管理
+
+alt 密码与前n次重复
+gbaseServer -> gbaseServer: 新密码与当前密码一致/新密码是否与历史密码一致
+gbaseServer --> gdiosUi: 密码不能改与前 n 次相同
+else 密码与前n次不重复
+opt 历史密码最多记录 n-1次
+gbaseServer ->gbaseServer: 判断历史密码记录次数超过阈值
+gbaseServer ->gbaseServer: 删除最旧的一条密码信息
+end
+gbaseServer ->gbaseServer:记录当前密码
+end
+gbaseServer --> gdiosUi: success
+@enduml
+@startuml
+== 查询列表 ==
+gdiosUi ->gbaseServer: bpm/commit/list
+gbaseServer -> gbaseServer: 过滤数据权限
+gbaseServer --> gdiosUi: response
+
+== 查询详情 ==
+
+gdiosUi ->gbaseServer: bpm/commit/detail
+gbaseServer ->gbaseServer: 校验数据权限
+gbaseServer --> gdiosUi: response
+
+gdiosUi -> dgovenServer: audit/detail
+dgovenServer -> DB: 查询工单详情
+dgovenServer <-- DB: response
+gdiosUi <-- dgovenServer: response
+
+gdiosUi -> dgovenServer: 请求其他渲染数据
+gdiosUi <-- dgovenServer: response
+@enduml
+
+@startuml
+
+== 查询详情 ==
+gdiosUi ->gbaseServer: bpm/commit/detail
+gbaseServer ->gbaseServer: 校验数据权限
+gbaseServer --> gdiosUi: response
+
+gdiosUi -> dgovenServer: audit/detail
+dgovenServer -> DB: 查询工单详情
+dgovenServer <-- DB: response
+
+dgovenServer -> gbaseServer: 校验数据权限
+note across: 新增数据校验
+dgovenServer <-- gbaseServer: 返回
+
+gdiosUi <-- dgovenServer: response
+
+gdiosUi -[#red]> dgovenServer: 请求其他渲染数据 携带工单id
+
+dgovenServer -> gbaseServer: 校验数据权限
+note across: 新增数据校验
+dgovenServer <-- gbaseServer: 返回
+
+
+gdiosUi <-- dgovenServer: response
+@enduml
+
